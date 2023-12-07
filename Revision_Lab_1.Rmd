@@ -1,0 +1,124 @@
+---
+title: "Revision of Lab1"
+output: html_document
+date: "2023-12-07"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+In this script I will try to better understand the slides and the code of the Lab1 helded by the Tutor D'Agostini.
+
+Let's consider the example proposed in the lab session: Beta-Binomial model.
+In the Beta-Binomial model, the Beta prior distribution for the proportion parameter $\theta$ follows a Beta distribution with $a$ and $b$ parameters.
+The likelihood function is the following:\\
+$y|\theta$ $\thicksim$ $Bin(n, \theta)$
+Therefore, as we know from the theory\\
+$\theta |y \thicksim Beta(a+r, n-r+b)$ where $r$ are the successes obtained in the $n$ trials.
+
+Now, let's translate it in R code \\
+
+### Prior parameters
+
+We set the initial values for the prior parameters at random
+
+```{r}
+a <- 1
+b <- 1
+```
+The sample evidences is the following (those numbers simply recall an example did in class)
+
+```{r}
+r <- 15 # number of successes
+n <- 20 # number of trials
+```
+Then, we can say that the posterior parameters are given by the formula written just above the code
+
+```{r}
+a_prime <- a + r
+b_prime <- n - r + b
+```
+
+Now we can sample from the posterior distribution defined before for this particular example. $S$ is the number of samples taken from the Beta distribution.
+```{r}
+S <- 1e6
+
+# random sample from the posterior
+post_sample <- rbeta(n = S, 
+                     shape1 = a_prime, 
+                     shape2 = b_prime)
+```
+
+Now in this plot we can compare how the sampled distribution is similar to the theoretical one.
+```{r}
+hist(post_sample, breaks = 30, probability = T, 
+     main = "Posterior of theta", xlab = "theta")
+# theoretical distribution of the posterior
+curve(expr = dbeta(x, shape1 = a_prime, shape2 = b_prime), 
+      from = 0, to = 1,col = 2, add = T)
+
+```
+From the plot we can see that the red line (the theoretical one) is very narrow to the sampled distribution.\\
+
+Now, it follows something that we didn't see in class but, in my opinion helps to understand what we are doing. \\
+
+Here, with the help of course of ChatGpt, I used the shiny package to make an interactive plot where the slider that allows you to interactively change the number of samples. As we increase the number of samples, it's possible to see that the histogram plot becomes more and mores similar to the distribution of the red line.\\
+
+
+```{r}
+# Install and load necessary packages if not already installed
+if (!requireNamespace("shiny", quietly = TRUE)) {
+  install.packages("shiny")
+}
+
+library(shiny)
+
+# Define UI
+ui <- fluidPage(
+  sliderInput("num_samples", "Number of Samples", min = 100, max = 10000, value = 10000),
+  plotOutput("posterior_plot")
+)
+
+# Define server logic
+server <- function(input, output) {
+  observe({
+    S <- input$num_samples
+    post_sample <- rbeta(n = S, shape1 = a_prime, shape2 = b_prime)
+
+    output$posterior_plot <- renderPlot({
+      hist(post_sample, breaks = 30, probability = TRUE,
+           main = paste("Posterior of theta (", S, " samples)"), xlab = "theta")
+      curve(expr = dbeta(x, shape1 = a_prime, shape2 = b_prime),
+            from = 0, to = 1, col = 2, add = TRUE)
+    })
+  })
+}
+
+# Run the Shiny app
+shinyApp(ui, server)
+
+```
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+
+```{r}
+```
+
+```{r}
+```
+
+
+```{r}
+```
+
